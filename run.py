@@ -23,9 +23,9 @@ TRAIN_CSV = 'train.csv'
 
 # IMG_SIZE = 672
 # BATCH_SIZE = 12
-IMG_SIZE     = 384
-BATCH_SIZE   = 16
-VAL_SPLIT    = 0.01
+IMG_SIZE     = 480 #384
+BATCH_SIZE   = 8 #16
+VAL_SPLIT    = 0.001
 
 
 ### DATASET
@@ -123,9 +123,10 @@ if __name__ == "__main__":
 
     model = train_model(X_train_ram, y_train_ram, 
                         X_val_ram, y_val_ram, 
-                        class_weight=get_class_weights(y), 
                         img_size=IMG_SIZE, 
                         batch_size=BATCH_SIZE)
+
+    model.load_weights(f'{WORK_PATH}/best_model.h5')
 
     ### TEST
     test_df = pd.DataFrame(os.listdir(TEST_DIR), columns=['image_name'])
@@ -140,7 +141,6 @@ if __name__ == "__main__":
         class_mode=None,
         target_size=(IMG_SIZE, IMG_SIZE)
     )
-    # print(f'Image Size = {image_size}x{image_size}')
 
     y_pred = model.predict(test_gen)
     y_pred = np.argmax(y_pred, axis=1)

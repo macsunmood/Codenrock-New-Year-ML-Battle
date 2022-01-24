@@ -1,6 +1,7 @@
 import os
 
 import tensorflow as tf
+from tensorflow_addons.metrics import F1Score
 # from tensorflow.keras.models import load_model
 from tensorflow.keras.models import Model, Sequential
 import tensorflow.keras.layers as L
@@ -35,12 +36,12 @@ def recreate_callbacks(es_patience=10, use_scheduler=True, scheduler_start=10,
     '''Makes a list with new instances of each tensorflow callback'''
     
     callbacks_list = [ModelCheckpoint(os.path.join(WORK_DIR, checkpoint_name), 
-                                      monitor='val_accuracy', 
+                                      monitor='val_f1_score', 
                                       mode='max', 
                                       save_best_only=best_only, 
-                                      # save_weights_only=True, 
+                                      save_weights_only=True, 
                                       verbose=0), 
-                      EarlyStopping(monitor='val_accuracy', 
+                      EarlyStopping(monitor='val_f1_score', 
                                     patience=es_patience, 
                                     restore_best_weights=True)]
     if use_scheduler:
@@ -65,7 +66,7 @@ def pretrained_assemble(base, head, name=None):
 
 def classification_model(input_shape, num_classes=3):
 
-    base_model = efn_v2.EfficientNetV2S(num_classes=0, 
+    base_model = efn_v2.EfficientNetV2L(num_classes=0, 
                                         pretrained='imagenet', 
                                         include_preprocessing=True, 
                                         input_shape=input_shape
@@ -83,16 +84,17 @@ def classification_model(input_shape, num_classes=3):
     name = f'EfficientNetV2_{input_shape[0]}x{input_shape[1]}'
     return pretrained_assemble(base_model, head, name)
 
-def train_model(X_train, y_train, X_val, y_val, class_weight, img_size, batch_size):
+def train_model(X_train, y_train, X_val, y_val, img_size, batch_size):
 	model = classification_model(input_shape=(img_size, img_size, 3))
 
     model.compile(loss='categorical_crossentropy', 
                   optimizer=optimizers.Adam(learning_rate=0.001, amsgrad=True)
-                  metrics=['accuracy'])
+                  # metrics=['accuracy']
+                  metrics=[F1Score(num_classes=3, average='weighted')]
+                  )
 
     model.fit(X_train, y_train, 
               validation_data=(X_val, y_val), 
-              class_weight=class_weight, 
               batch_size=batch_size, 
               epochs=30, #NUM_EPOCHS, 
               callbacks=recreate_callbacks(es_patience=7), 
