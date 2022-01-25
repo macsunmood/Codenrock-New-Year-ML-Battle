@@ -85,13 +85,11 @@ def classification_model(input_shape, num_classes=3):
     return pretrained_assemble(base_model, head, name)
 
 def train_model(X_train, y_train, X_val, y_val, img_size, batch_size):
-	model = classification_model(input_shape=(img_size, img_size, 3))
+    model = classification_model(input_shape=(img_size, img_size, 3))
 
     model.compile(loss='categorical_crossentropy', 
-                  optimizer=optimizers.Adam(learning_rate=0.001, amsgrad=True)
-                  # metrics=['accuracy']
-                  metrics=[F1Score(num_classes=3, average='weighted')]
-                  )
+                  optimizer=optimizers.Adam(learning_rate=0.001, amsgrad=True), 
+                  metrics=[F1Score(num_classes=3, average='weighted')])
 
     model.fit(X_train, y_train, 
               validation_data=(X_val, y_val), 
@@ -105,4 +103,4 @@ def train_model(X_train, y_train, X_val, y_val, img_size, batch_size):
 
 
 if __name__ == '__main__':
-	print('Ok')
+    print('Ok')
