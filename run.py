@@ -25,7 +25,7 @@ TRAIN_CSV = 'train.csv'
 # BATCH_SIZE = 12
 IMG_SIZE     = 384#480 #384
 BATCH_SIZE   = 16 #16
-VAL_SPLIT    = 0.001
+VAL_SPLIT    = 0.002
 
 
 ### DATASET
