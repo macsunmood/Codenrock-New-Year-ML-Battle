@@ -66,7 +66,7 @@ def pretrained_assemble(base, head, name=None):
 
 def classification_model(input_shape, num_classes=3):
 
-    base_model = efn_v2.EfficientNetV2L(num_classes=0, 
+    base_model = efn_v2.EfficientNetV2S(num_classes=0, 
                                         pretrained='imagenet', 
                                         include_preprocessing=True, 
                                         input_shape=input_shape
@@ -96,9 +96,11 @@ def train_model(X_train, y_train, X_val, y_val, img_size, batch_size):
     model.fit(X_train, y_train, 
               validation_data=(X_val, y_val), 
               batch_size=batch_size, 
-              epochs=30, #NUM_EPOCHS, 
-              callbacks=recreate_callbacks(es_patience=7), 
+              epochs=40, #NUM_EPOCHS, 
+              callbacks=recreate_callbacks(es_patience=10, scheduler_start=10), 
               verbose=1)
+
+    model.load_weights(f'{WORK_DIR}/best_model.h5')
     return model
 
 

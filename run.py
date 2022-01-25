@@ -23,8 +23,8 @@ TRAIN_CSV = 'train.csv'
 
 # IMG_SIZE = 672
 # BATCH_SIZE = 12
-IMG_SIZE     = 480 #384
-BATCH_SIZE   = 8 #16
+IMG_SIZE     = 384#480 #384
+BATCH_SIZE   = 16 #16
 VAL_SPLIT    = 0.001
 
 
@@ -125,8 +125,6 @@ if __name__ == "__main__":
                         X_val_ram, y_val_ram, 
                         img_size=IMG_SIZE, 
                         batch_size=BATCH_SIZE)
-
-    model.load_weights(f'{WORK_PATH}/best_model.h5')
 
     ### TEST
     test_df = pd.DataFrame(os.listdir(TEST_DIR), columns=['image_name'])
