@@ -6,7 +6,7 @@ import pandas as pd
 
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 # from dataset import augment_image, rebuild_generators
-# from train import make_model, train_model
+from train import make_model, train_model
 
 
 from tensorflow.keras.models import load_model
