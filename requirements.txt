@@ -1,6 +1,8 @@
+pillow==9.0.1
 numpy>=1.19.5
 pandas>=1.1.5
 sklearn
-tensorflow==2.7.0
+tensorflow==2.8.0
 tensorflow_addons
+albumentations
 keras-efficientnet-v2

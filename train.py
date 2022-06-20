@@ -1,8 +1,5 @@
-import os
-
 import tensorflow as tf
 from tensorflow_addons.metrics import F1Score
-from tensorflow.keras.models import load_model
 from tensorflow.keras.models import Model, Sequential
 import tensorflow.keras.layers as L
 from tensorflow.keras import optimizers
@@ -10,18 +7,8 @@ from tensorflow.keras import optimizers
 from tensorflow.keras.callbacks import (ModelCheckpoint, 
                                         EarlyStopping, 
                                         LearningRateScheduler)
-# import keras_efficientnet_v2 as efn_v2
+import keras_efficientnet_v2 as efn_v2
 # from keras.utils import io_utils
-
-
-### CONSTS
-DATA_DIR = './data'
-WEIGHTS_DIR = os.path.join(DATA_DIR, 'weight')  # model weights location
-
-# WEIGHTS_DIR = '../data/weight/'
-
-# VAL_SPLIT    = 0.002
-# LR          = 0.001
 
 
 ### MODEL
@@ -34,10 +21,10 @@ def scheduler(epoch, lr, start=10):
 
 
 def recreate_callbacks(es_patience=10, use_scheduler=True, scheduler_start=10, 
-                       checkpoint_name='best_model.h5', best_only=True):
+                       checkpoint_path='best_model.h5', best_only=True):
     '''Makes a list with new instances of each tensorflow callback'''
     
-    callbacks_list = [ModelCheckpoint(os.path.join(WEIGHTS_DIR, checkpoint_name), 
+    callbacks_list = [ModelCheckpoint(filepath=checkpoint_path, 
                                       monitor='val_f1_score', 
                                       mode='max', 
                                       save_best_only=best_only, 
@@ -56,6 +43,7 @@ def recreate_callbacks(es_patience=10, use_scheduler=True, scheduler_start=10,
 
 
 def pretrained_assemble(base, head, name=None):
+    '''Assembles a pretrained base model with a new head'''
     output = base.output
 
     for layer in head.layers:
@@ -66,36 +54,28 @@ def pretrained_assemble(base, head, name=None):
                  name=name)
 
 
-def classification_model(input_shape, num_classes=3):
-    # base_model = efn_v2.EfficientNetV2S(num_classes=0, 
-    #                                     pretrained='imagenet', 
-    #                                     include_preprocessing=True, 
-    #                                     input_shape=input_shape
-    #                                     )
-
-    # murl = 'https://github.com/leondgarse/keras_efficientnet_v2/releases/download/effnetv2_pretrained/efficientnetv2-s-imagenet.h5'
-    # base_model = tf.keras.utils.get_file('efficientnetv2-s-imagenet.h5', murl, 
-    #                                      cache_subdir="models/efficientnetv2"
-    #                                      )
-
-    base_model = load_model(f'{WEIGHTS_DIR}/efficientnetv2-s-imagenet.h5')
-    base_model = Model(inputs=base_model.input, 
-                       outputs=base_model.layers[-4].output)
+def classification_model(input_shape, num_classes):
+    '''Classification model for Santa contest'''
+    base_model = efn_v2.EfficientNetV2S(num_classes=0,
+                                        pretrained='imagenet', 
+                                        include_preprocessing=True, 
+                                        input_shape=input_shape
+                                        )
 
     head = Sequential([
         L.GlobalAveragePooling2D(), 
         L.Dense(1792, use_bias=True, kernel_regularizer='l2'), 
         L.Dropout(0.5), 
-        L.Activation('selu'), 
+        L.Activation('selu', name='activation_'), 
         L.Dense(896, use_bias=True, kernel_regularizer='l2'), 
         L.Dropout(0.5), 
-        L.Activation('selu'), 
+        L.Activation('selu', name='activation_1_'), 
         L.Dense(448, use_bias=True, kernel_regularizer='l2'), 
         L.Dropout(0.5), 
-        L.Activation('selu'), 
+        L.Activation('selu', name='activation_2_'), 
         L.Dense(224, use_bias=True, kernel_regularizer='l2'), 
         L.Dropout(0.5), 
-        L.Activation('selu'), 
+        L.Activation('selu', name='activation_3_'), 
         L.Dense(num_classes, activation='softmax')
     ])
 
@@ -103,25 +83,32 @@ def classification_model(input_shape, num_classes=3):
     return pretrained_assemble(base_model, head, name)
 
 
-def make_model(img_size):
-    model = classification_model(input_shape=(img_size, img_size, 3))
+def make_model(img_size, learning_rate, num_classes=3):
+    '''Makes a compiled model'''
+    model = classification_model(input_shape=(img_size, img_size, 3), 
+                                 num_classes=num_classes)
 
     model.compile(loss='categorical_crossentropy', 
-                  optimizer=optimizers.Adam(learning_rate=0.001, amsgrad=True), 
+                  optimizer=optimizers.Adam(learning_rate=learning_rate, amsgrad=True), 
                   metrics=[F1Score(num_classes=3, average='weighted')])
 
     return model
 
 
-def train_model(model, train_gen, val_gen, img_size, batch_size, epochs):
+def train_model(model, train_gen, val_gen, img_size, batch_size, epochs, weights_dir):
+    '''Training routing for model'''
     model.fit(train_gen, 
               validation_data=val_gen, 
               batch_size=batch_size, 
               epochs=epochs, 
-              callbacks=recreate_callbacks(es_patience=10, scheduler_start=10), 
+              callbacks=recreate_callbacks(
+                  es_patience=10, 
+                  scheduler_start=10, 
+                  checkpoint_path=f'{weights_dir}/best_model.h5'
+              ), 
               verbose=1)
 
-    model.load_weights(f'{WEIGHTS_DIR}/best_model.h5')
+    model.load_weights(f'{weights_dir}/best_model.h5')
     return model
 
 

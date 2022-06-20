@@ -1,5 +1,8 @@
+__pycache__
 data/train/*
 data/in/*
 .idea
 data/test/*
 data/out/*
+/.vscode
+.ipynb_checkpoints
