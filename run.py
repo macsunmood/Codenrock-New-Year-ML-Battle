@@ -23,12 +23,9 @@ TRAIN_CSV = os.path.join(DATA_DIR, 'train.csv')
 
 VAL_SPLIT  = 0.01
 IMG_SIZE   = 384
-# IMG_SIZE   = 8
 LR         = 0.0001
 BATCH_SIZE = 8
-# BATCH_SIZE = 64
 NUM_EPOCHS = 20
-# NUM_EPOCHS = 1
 
 
 if __name__ == '__main__':
@@ -74,11 +71,6 @@ if __name__ == '__main__':
     # model.save(f'{WEIGHTS_DIR}/{model.name}.h5')
     ### ---TRAINING PART: END
 
-
-    # Download pretrained model with weights
-    # import gdown
-    # WEIGHTS_FILE_ID = '1Id9r8YSq_XCKeF0hz020hvdhQd6jETOE'
-    # gdown.download(id=WEIGHTS_FILE_ID, output=f'{WEIGHTS_DIR}/model.h5', quiet=False)
 
     # Load pretrained model for inference
     model = load_model(f'{WEIGHTS_DIR}/model.h5')

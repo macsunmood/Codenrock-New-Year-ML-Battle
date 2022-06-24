@@ -37,13 +37,10 @@ class ImagesDataset:
         self.random_state = random_state        
 
         self.train_datagen = None
-        # self.val_datagen = None
-        # self.clean_datagen = None
 
         self.train_gen = None
         self.val_gen = None
 
-        # self.all_gen = None
         self.test_gen = None
 
         self.train_df = None
